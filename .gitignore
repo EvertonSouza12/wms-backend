@@ -1,0 +1,23 @@
+# Rust & Cargo
+/target/
+**/*.rs.bk
+
+# Configurações e Segredos
+.env
+.env.*
+!.env.example
+
+# Docker e Dados Locais
+mariadb_data/
+*.log
+*.sql.gz
+
+# IDEs e Editores
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Sistema Operacional
+.DS_Store
+Thumbs.db

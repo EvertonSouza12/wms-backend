@@ -1,25 +1,30 @@
 version: '3.8'
 
 services:
-  api:
-    build: .
-    ports:
-      - "3000:3000"
+  db:
+    image: mariadb:10.11
+    container_name: wms-mariadb
+    restart: always
     environment:
-      - DATABASE_URL=postgres://wms_user:wms_pass@db:5432/wms_db
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: wms_db
+      MYSQL_USER: wms_user
+      MYSQL_PASSWORD: wms_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+
+  app:
+    build: .
+    container_name: wms-backend-app
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - DATABASE_URL=mysql://wms_user:wms_password@db:3306/wms_db
     depends_on:
       - db
 
-  db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: wms_user
-      POSTGRES_PASSWORD: wms_pass
-      POSTGRES_DB: wms_db
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
 volumes:
-  postgres_data:
+  mariadb_data:
