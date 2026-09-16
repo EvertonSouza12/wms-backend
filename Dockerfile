@@ -1,12 +1,22 @@
-FROM golang:1.27
+# 3. Etapa de Build (SDK completa)
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
 
-WORKDIR /usr/src/app
+# Copia e restaura as dependências primeiro (otimização de cache)
+COPY ["WmsBackend.csproj", "./"]
+RUN dotnet restore "WmsBackend.csproj"
 
-# pre-copy/cache go.mod for pre-downloading dependencies and only redownloading them in subsequent builds if they change
-COPY go.mod go.sum ./
-RUN go mod download
-
+# Copia o código restante e compila
 COPY . .
-RUN go build -v -o /usr/local/bin/app ./...
+RUN dotnet publish "WmsBackend.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
-CMD ["app"]
+# 2. Etapa Final (Apenas Runtime leve)
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+WORKDIR /app
+COPY --from=build /app/publish .
+
+# Define a porta padrão do ASP.NET 8+
+EXPOSE 8080
+ENV ASPNETCORE_HTTP_PORTS=8080
+
+ENTRYPOINT ["dotnet", "WmsBackend.dll"]
